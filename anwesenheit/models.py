@@ -1,19 +1,20 @@
 from django.db import models
 
-class RFIDChip(models.Model):
-    person = models.OneToOneField(Person, on_delete=models.CASCADE)
-    chip_id = models.CharField(max_length=50, unique=True)
-
-
 class Anwesenheit(models.Model):
-    person = models.ForeignKey(Person, on_delete=models.CASCADE)
+    person = models.ForeignKey('Schueler', on_delete=models.CASCADE)
     datum = models.DateField()
     uhrzeit = models.TimeField()
     anwesend = models.BooleanField(default=True)
 
     def __str__(self):
-    return f'{self.person} am {self.datum} um {self.uhrzeit}'
+        return f'{self.person} am {self.datum} um {self.uhrzeit}'
 
+class RFIDChip(models.Model):
+    person = models.OneToOneField('Schueler', on_delete=models.CASCADE)
+    chip_id = models.CharField(max_length=50, unique=True)
+
+    def __str__(self):
+        return f'{self.chip_id} für {self.person}'
 
 class Wohnort(models.Model):
     plz = models.CharField(max_length=6)
@@ -30,7 +31,7 @@ class Strasse(models.Model):
 
 class Kontaktdaten(models.Model):                        
     wohnort = models.ForeignKey(Wohnort, on_delete=models.PROTECT)
-    strasse = models.ForeignKey(strasse, on_delete=models.PROTECT)
+    strasse = models.ForeignKey(Strasse, on_delete=models.PROTECT)
     hausnummer = models.CharField(max_length=6)
     telefonnummer = models.CharField(max_length=20)
     email = models.EmailField(max_length=254, unique=True)
