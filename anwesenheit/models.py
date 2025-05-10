@@ -11,6 +11,10 @@ class Anwesenheit(models.Model):
     uhrzeit = models.TimeField()
     anwesend = models.BooleanField(default=True)
 
+    def __str__(self):
+    return f'{self.person} am {self.datum} um {self.uhrzeit}'
+
+
 class Wohnort(models.Model):
     plz = models.CharField(max_length=6)
     stadt = models.CharField(max_length=50)
@@ -18,9 +22,15 @@ class Wohnort(models.Model):
     def __str__(self):
         return f'{self.plz} {self.stadt}'
 
+class Strasse(models.Model):
+    name = models.CharField(max_length=100)
+
+    def __str__(self):
+        return self.name
+
 class Kontaktdaten(models.Model):                        
     wohnort = models.ForeignKey(Wohnort, on_delete=models.PROTECT)
-    strasse = models.CharField(max_length=50)
+    strasse = models.ForeignKey(strasse, on_delete=models.PROTECT)
     hausnummer = models.CharField(max_length=6)
     telefonnummer = models.CharField(max_length=20)
     email = models.EmailField(max_length=254, unique=True)
@@ -47,7 +57,10 @@ class Person(models.Model):
 class Klasse(models.Model):
     bezeichnung = models.CharField(max_length=20)
     jahrgang = models.PositiveIntegerField()
-    Lehrer = models.ForeignKey('Lehrer', on_delete=models.SET_NULL, null=True, blank=True)
+    lehrer = models.ForeignKey('Lehrer', on_delete=models.SET_NULL, null=True, blank=True)
+
+    class Meta:
+        unique_together = ('bezeichnung', 'jahrgang')   # Kombination eindeutig
 
     def __str__(self):
         return f'{self.bezeichnung} ({self.jahrgang})'
