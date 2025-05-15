@@ -1,7 +1,13 @@
 from django.db import models
+from django.contrib.contenttypes.models import ContentType
+from django.contrib.contenttypes.fields import GenericForeignKey
+
+
 
 class Anwesenheit(models.Model):
-    person = models.ForeignKey('Schueler', on_delete=models.CASCADE)
+    content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
+    object_id = models.PositiveIntegerField()
+    person = GenericForeignKey('content_type', 'object_id')
     datum = models.DateField()
     uhrzeit = models.TimeField()
     anwesend = models.BooleanField(default=True)
