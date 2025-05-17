@@ -1,13 +1,13 @@
-from django.contrib import admin
-from .models import Anwesenheit
+from django.contrib import admin                    # Modelle im Django-Admin sichtbar machen
+from django import forms                            # eigene Eingabeformulare definieren
+from .models import Anwesenheit, Schueler, Lehrer   # eigene Modelle importieren
+from django.contrib.contenttypes.models import ContentType
 
-@admin.register(Anwesenheit)
-class AnwesenheitAdmin(admin.ModelAdmin):
-    list_display = ('person', 'datum', 'uhrzeit', 'anwesend')
-    list_filter = ('datum', 'anwesend')
-    search_fields = ('object_id',)
+# eigenes Formular für Admin, dass auf Modell Anwesenheit basiert
+class AnwesenheitForm(forms.ModelForm):             # neue Klasse, Django-Formular automatische Felder
+    schueler = forms.ModelChoiceField(queryset=Schueler.objects.all(),)required=False)  # Dropdownmenü mit Schüler, nicht zwingend erforderlich
+    lehrer = forms.ModelChoiceField(queryset=Lehrer.objects.all(), required=False)      # Dropdownmenü mit Lehrer, nicht zwingend erforderlich
 
-from .models import Schueler, Lehrer
-
-admin.site.register(Schueler)
-admin.site.register(Lehrer)
+class Meta:
+    model = Anwesenheit
+    fields = ['datum', 'uhrzeit', 'anwesend', 'schueler', 'lehrer']
