@@ -12,14 +12,40 @@ class AnwesenheitForm(forms.ModelForm):             # neue Klasse, Django-Formul
         model = Anwesenheit                             # Formular basiert auf der Anwesenheitsklasse
         fields = ['datum', 'uhrzeit', 'anwesend', 'schueler', 'lehrer']     # Daten die angezeigt werden sollen
 
-    def speichern(self, speichern_direkt=True):     # self, akkutelle Instanz des Objekt, commit=True -> speichert das Objekt sofort
-        instanz = super().save(commit=False)        # super() ist python funktion die Methoden aus Eltrnklasse aufruft, save ruft Methode der Elternklasse (ModelForm) auf, commmit=false speichert es noch nicht 
-        if self.cleaned_data['schueler']:           # self.cleaned_data ist ein dictionary(von django) mit allen formular daten, wurde im feld schueler schon etwas ausgewählt
+    def speichern(self, speichern_direkt=True):
+        # Erzeugt eine Instanz, speichert aber noch nicht in die Datenbank
+        instanz = super().save(commit=False)
+
+        # Holt die Eingaben aus dem Formular
+        schueler = self.cleaned_data.get('schueler')
+        lehrer = self.cleaned_data.get('lehrer')
+
+        # Prüft, ob beide oder keiner ausgewählt wurden
+        if schueler and lehrer:
+            raise ValidationError("Bitte wähle **entweder** einen Schüler **oder** einen Lehrer – nicht beides.")
+        elif schueler:
+            # Setze ContentType und object_id für generische Beziehung auf Schüler
             instanz.content_type = ContentType.objects.get_for_model(Schueler)
-            instanz.object_id = self.cleaned_data['schueler'].id
-        elif self.cleaned_data['lehrer']:
+            instanz.object_id = schueler.id
+        elif lehrer:
+            # Setze ContentType und object_id für generische Beziehung auf Lehrer
             instanz.content_type = ContentType.objects.get_for_model(Lehrer)
-            instanz.object_id = self.cleaned_data['lehrer'].id
+            instanz.object_id = lehrer.id
+        else:
+            raise ValidationError("Bitte wähle einen Schüler **oder** einen Lehrer aus.")
+
+        # Wenn direkt gespeichert werden soll:
         if speichern_direkt:
             instanz.save()
+
         return instanz
+
+class AnwesenheitAdmin(admin.ModelAdmin)
+    form = AnwesenheitForm  # das eigene Formular aktivieren
+    list_display = ('get_person_name', 'datum', 'uhrzeit', 'anwesend')
+    list_filter = ('datum', 'anwesend')
+    search_fields = ('object_id',)
+
+    def get_person_name(self, obj):
+        return str(obj.person)
+    get_person_name.short_description = 'Person'
