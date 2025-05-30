@@ -11,6 +11,12 @@ LOGFILE = "zeiterfassung.csv"
 # Speichert den letzten Status pro UID: 'Kommen' oder 'Gehen'
 status_speicher = {}
 
+# Speichert die letzte Lesezeit pro UID
+letzte_lesezeit = {}
+
+# Minimale Pause zwischen zwei Scans desselben Chips (Sekunden)
+MIN_PAUSE = 3
+
 def erfasse_zeit(uid, status):
     now = datetime.now()
     datum = now.strftime("%Y-%m-%d")
@@ -29,32 +35,33 @@ def erfasse_zeit(uid, status):
 print("System bereit. Halte einen RFID-Chip an den Leser...")
 
 try:
-    letzte_uid = None
     while True:
-        uid, _ = reader.read()
-        if uid != letzte_uid:
-            # Status bestimmen
-            letzter_status = status_speicher.get(uid, "Gehen")  # Standard: zuletzt gegangen -> jetzt Kommen
+        try:
+            uid, _ = reader.read()
+        except Exception:
+            # Fehler beim Lesen ignorieren
+            time.sleep(0.5)
+            continue
+
+        jetzt = time.time()
+        letzte_zeit = letzte_lesezeit.get(uid, 0)
+
+        # Nur wenn seit letztem Scan MIN_PAUSE Sekunden vergangen sind
+        if jetzt - letzte_zeit > MIN_PAUSE:
+            letzter_status = status_speicher.get(uid, "Gehen")  # Falls noch kein Eintrag, dann "Gehen"
             neuer_status = "Kommen" if letzter_status == "Gehen" else "Gehen"
 
             erfasse_zeit(uid, neuer_status)
 
-            # Status aktualisieren
             status_speicher[uid] = neuer_status
+            letzte_lesezeit[uid] = jetzt
 
-            letzte_uid = uid
+            print("Bitte Chip entfernen oder kurz warten...")
 
-            # Warten bis Chip entfernt wurde
-            print("Bitte Chip entfernen...")
-            while True:
-                try:
-                    neuer_uid, _ = reader.read()
-                    if neuer_uid != uid:
-                        break
-                except:
-                    pass
+            # Hier keine Schleife, damit der gleiche Chip sofort wieder gelesen werden kann
         time.sleep(0.5)
 
 except KeyboardInterrupt:
     GPIO.cleanup()
     print("Programm beendet.")
+
