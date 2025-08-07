@@ -5,7 +5,7 @@ from django.contrib.contenttypes.models import ContentType
 
 # eigenes Formular für Admin, dass auf Modell Anwesenheit basiert
 class AnwesenheitForm(forms.ModelForm):             # neue Klasse, Django-Formular automatische Felder
-    schueler = forms.ModelChoiceField(queryset=Schueler.objects.all(),)required=False)  # Dropdownmenü mit Schüler, nicht zwingend erforderlich
+    schueler = forms.ModelChoiceField(queryset=Schueler.objects.all(), required=False)  # Dropdownmenü mit Schüler, nicht zwingend erforderlich
     lehrer = forms.ModelChoiceField(queryset=Lehrer.objects.all(), required=False)      # Dropdownmenü mit Lehrer, nicht zwingend erforderlich
 
     class Meta:                                         # Metaklasse
@@ -40,7 +40,7 @@ class AnwesenheitForm(forms.ModelForm):             # neue Klasse, Django-Formul
 
         return instanz
 
-class AnwesenheitAdmin(admin.ModelAdmin)
+class AnwesenheitAdmin(admin.ModelAdmin):
     form = AnwesenheitForm  # das eigene Formular aktivieren
     list_display = ('get_person_name', 'datum', 'uhrzeit', 'anwesend')
     list_filter = ('datum', 'anwesend')
